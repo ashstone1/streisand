@@ -12,7 +12,7 @@ jobs:
       #ANSIBLE_VERBOSITY: 5
       DEBIAN_FRONTEND: noninteractive
     strategy:
-      #max-parallel: 5
+      #max-parallel: 1
       fail-fast: false
       matrix:
         # 3.5 for older distro's like xenial, and 3.8 to test the latest python
@@ -20,16 +20,12 @@ jobs:
         # Test ansible 2.8 and "latest"
         ansible-version: [">=2.8,<2.9", ">=2.9"]
         env_vars:
-          - {RUN: "shellcheck yamlcheck syntax ci", SITE: "global_vars/default-site.yml"}
-          - {RUN: "ci", SITE: "tests/site_vars/openconnect.yml"}
-          - {RUN: "ci", SITE: "tests/site_vars/openvpn.yml"}
-          - {RUN: "ci", SITE: "tests/site_vars/shadowsocks.yml"}
-          - {RUN: "ci", SITE: "tests/site_vars/ssh.yml"}
+          - {RUN: "shellcheck yamlcheck syntax ci", SITE: "global_default-site.yml"}
+          - {RUN: "ci", SITE: "tests/site/openconnect.yml"}
+          - {RUN: "ci", SITE: "tests/site/openvpn.yml"}
+          - {RUN: "ci", SITE: "tests/site/shadowsocks.yml"}
+          - {RUN: "ci", SITE: "tests/site/ssh.yml"}
           - {RUN: "ci", SITE: "random"}
-    steps:
-        # Removing dotnetdev.list, and microsoft-prod.list for now, as they seem to constantly have issues
-        # with multiple github issues being opened in response. Removing shellcheck so we can install
-        # a newer version from snap.
       - name: Remove apt lists and packages we dont need
         run: |
           sudo rm -f /etc/apt/sources.list.d/dotnetdev.list /etc/apt/sources.list.d/microsoft-prod.list
@@ -41,7 +37,7 @@ jobs:
           sudo apt-get --purge autoremove -yqq
       - name: Update Yarn Debian key
         run: |
-          curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+          curl -sS https://dl.yarnpkg.com/debian/key.gpg | sudo apt-key add -
       - name: Install additonal deps
         run: |
           sudo apt-get install ca-certificates
@@ -61,5 +57,5 @@ jobs:
           pip install urllib3 yamllint
           ansible --version
       - name: Run tests
-        env: ${{ matrix.env_vars }}
+        env: ${{ matrix.env }}
         run: ./tests/tests.sh
